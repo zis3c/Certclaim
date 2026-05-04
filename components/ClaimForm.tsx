@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 
 type ClaimFormProps = {
   isOpen: boolean;
+  claimTitle: string;
 };
 
 type CheckResult =
@@ -37,7 +38,7 @@ type CheckResult =
       message: string;
     };
 
-export default function ClaimForm({ isOpen }: ClaimFormProps) {
+export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
   const [matricNo, setMatricNo] = useState("");
   const [result, setResult] = useState<CheckResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -132,7 +133,7 @@ export default function ClaimForm({ isOpen }: ClaimFormProps) {
       <CardHeader className="space-y-1 border-b border-border/60 p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-medium text-muted-foreground">Front End Web Design Essential</p>
+            <p className="text-xs font-medium text-muted-foreground">{claimTitle}</p>
             <CardTitle className="mt-1 text-xl font-semibold tracking-tight">
               Certificate claim
             </CardTitle>

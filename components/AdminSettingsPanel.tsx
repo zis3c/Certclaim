@@ -30,6 +30,8 @@ type ThemePayload = {
   brandMode: "default" | "custom";
   primaryColor: string;
   defaultPrimaryColor: string;
+  claimTitle: string;
+  defaultClaimTitle: string;
 };
 
 type HealthPayload = {
@@ -108,6 +110,7 @@ export default function AdminSettingsPanel() {
   const [envForm, setEnvForm] = useState<EnvFormState>(initialEnvForm);
   const [brandMode, setBrandMode] = useState<"default" | "custom">("default");
   const [themeColor, setThemeColor] = useState("#0ea5a4");
+  const [claimTitle, setClaimTitle] = useState("Front End Web Design Essential");
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [participantKeyConfigured, setParticipantKeyConfigured] = useState(false);
   const [committeeKeyConfigured, setCommitteeKeyConfigured] = useState(false);
@@ -157,6 +160,7 @@ export default function AdminSettingsPanel() {
     setCommitteeKeyConfigured(envPayload.env.COMMITTEE_GOOGLE_PRIVATE_KEY_SET);
     setBrandMode(themePayload.brandMode === "custom" ? "custom" : "default");
     setThemeColor(themePayload.primaryColor || themePayload.defaultPrimaryColor || "#2563eb");
+    setClaimTitle(themePayload.claimTitle || themePayload.defaultClaimTitle || "Front End Web Design Essential");
   }, []);
 
   const runHealthCheck = useCallback(async () => {
@@ -238,20 +242,21 @@ export default function AdminSettingsPanel() {
       const response = await fetch("/api/admin/settings/theme", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandMode, primaryColor: themeColor })
+        body: JSON.stringify({ brandMode, primaryColor: themeColor, claimTitle })
       });
       const payload = (await response.json()) as ThemePayload & { message?: string };
-      if (!response.ok) throw new Error(payload.message || "Unable to save claim page theme color.");
+      if (!response.ok) throw new Error(payload.message || "Unable to save claim page config.");
       
       const newMode = payload.brandMode === "custom" ? "custom" : "default";
       const newColor = payload.primaryColor || "#2563eb";
       
       setBrandMode(newMode);
       setThemeColor(newColor);
+      setClaimTitle(payload.claimTitle || "Front End Web Design Essential");
 
-      pushMessage(payload.message || "Claim page theme updated.");
+      pushMessage(payload.message || "Claim page config updated.");
     } catch (error) {
-      pushMessage(error instanceof Error ? error.message : "Unable to save claim page theme color.", true);
+      pushMessage(error instanceof Error ? error.message : "Unable to save claim page config.", true);
     } finally {
       setIsSavingTheme(false);
     }
@@ -356,7 +361,18 @@ export default function AdminSettingsPanel() {
           <div className="max-w-md space-y-3">
             <div className="flex items-center gap-2 mb-3">
               <Palette className="h-4 w-4 text-primary" />
-              <p className="text-sm font-semibold text-foreground">Claim Page Theme</p>
+              <p className="text-sm font-semibold text-foreground">Claim Page Config</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="claim-title" className="text-xs">Claim Page Title</Label>
+              <Input
+                id="claim-title"
+                className="h-9"
+                value={claimTitle}
+                onChange={(event) => setClaimTitle(event.target.value)}
+                placeholder="Front End Web Design Essential"
+                maxLength={80}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button type="button" size="sm" variant={brandMode === "default" ? "default" : "outline"} onClick={() => { setBrandMode("default"); setThemeColor("#2563eb"); }}>
@@ -372,10 +388,10 @@ export default function AdminSettingsPanel() {
             </div>
             <Button size="sm" onClick={() => void saveTheme()} disabled={isSavingTheme}>
               {isSavingTheme ? <RefreshCw className="animate-spin" /> : <Save />}
-              Save Theme
+              Save Config
             </Button>
             <p className="text-[11px] text-muted-foreground">
-              Default uses blue. Custom recolors only the public claim page.
+              Title and custom color affect only the public claim page.
             </p>
           </div>
         )}

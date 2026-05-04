@@ -11,7 +11,7 @@ export default async function ClaimPage() {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("theme")?.value;
   const theme: Theme = savedTheme === "light" ? "light" : "dark";
-  const { brandMode, primaryColor } = getClaimBrandConfig();
+  const { brandMode, primaryColor, claimTitle } = getClaimBrandConfig();
   const claimBrandStyle = getClaimBrandStyle(theme, brandMode, primaryColor);
   let isOpen = false;
   let setupError = "";
@@ -45,7 +45,7 @@ export default async function ClaimPage() {
                 Claim your certificate.
               </h1>
               <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                Verify your matric number and download your workshop certificate in one secure step.
+                Verify your matric number and download your {claimTitle} certificate in one secure step.
               </p>
             </div>
             <div className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
@@ -61,11 +61,11 @@ export default async function ClaimPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Claim Certificate</p>
-                <p className="text-xs text-muted-foreground">Front End Web Design Essential</p>
+                <p className="text-xs text-muted-foreground">{claimTitle}</p>
               </div>
             </div>
 
-            <ClaimForm isOpen={isOpen && !setupError} />
+            <ClaimForm isOpen={isOpen && !setupError} claimTitle={claimTitle} />
 
             {setupError && (
               <div className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-300">

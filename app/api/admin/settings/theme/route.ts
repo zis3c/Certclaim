@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auditLog } from "@/lib/auditLog";
 import { getAdminSession } from "@/lib/auth";
+import { DEFAULT_CLAIM_TITLE, normalizeClaimTitle } from "@/lib/claimTheme";
 import { readManagedEnvValues, updateManagedEnvValues } from "@/lib/envLocal";
 import { requireSameOrigin } from "@/lib/requestSecurity";
 
@@ -34,13 +35,16 @@ export async function GET() {
   return NextResponse.json({
     brandMode,
     primaryColor: brandMode === "default" ? DEFAULT_PRIMARY_COLOR : primaryColor || CUSTOM_PRIMARY_COLOR,
-    defaultPrimaryColor: DEFAULT_PRIMARY_COLOR
+    defaultPrimaryColor: DEFAULT_PRIMARY_COLOR,
+    claimTitle: normalizeClaimTitle(envValues.NEXT_PUBLIC_CLAIM_TITLE),
+    defaultClaimTitle: DEFAULT_CLAIM_TITLE
   });
 }
 
 type ThemeBody = {
   brandMode?: string;
   primaryColor?: string;
+  claimTitle?: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -70,17 +74,20 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+  const claimTitle = normalizeClaimTitle(body.claimTitle);
 
   await updateManagedEnvValues({
     NEXT_PUBLIC_BRAND_MODE: brandMode,
-    NEXT_PUBLIC_PRIMARY_COLOR: color || DEFAULT_PRIMARY_COLOR
+    NEXT_PUBLIC_PRIMARY_COLOR: color || DEFAULT_PRIMARY_COLOR,
+    NEXT_PUBLIC_CLAIM_TITLE: claimTitle
   });
   await auditLog({
     event: "THEME_UPDATED",
     request,
     metadata: {
       brandMode,
-      primaryColor: color || DEFAULT_PRIMARY_COLOR
+      primaryColor: color || DEFAULT_PRIMARY_COLOR,
+      claimTitle
     }
   });
   return NextResponse.json({
@@ -88,6 +95,8 @@ export async function POST(request: NextRequest) {
     brandMode,
     primaryColor: color || DEFAULT_PRIMARY_COLOR,
     defaultPrimaryColor: DEFAULT_PRIMARY_COLOR,
+    claimTitle,
+    defaultClaimTitle: DEFAULT_CLAIM_TITLE,
     restartRequired: false
   });
 }

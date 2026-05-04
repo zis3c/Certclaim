@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 const DEFAULT_PRIMARY_COLOR = "#2563eb";
 const CUSTOM_PRIMARY_COLOR = "#0ea5a4";
+export const DEFAULT_CLAIM_TITLE = "Front End Web Design Essential";
 
 export type Theme = "dark" | "light";
 export type BrandMode = "default" | "custom";
@@ -13,8 +14,14 @@ export function getClaimBrandConfig() {
     process.env.NEXT_PUBLIC_PRIMARY_COLOR,
     brandMode === "custom" ? CUSTOM_PRIMARY_COLOR : DEFAULT_PRIMARY_COLOR
   );
+  const claimTitle = normalizeClaimTitle(process.env.NEXT_PUBLIC_CLAIM_TITLE);
 
-  return { brandMode, primaryColor };
+  return { brandMode, primaryColor, claimTitle };
+}
+
+export function normalizeClaimTitle(input: string | undefined) {
+  const value = input?.trim().replace(/\s+/g, " ");
+  return value ? value.slice(0, 80) : DEFAULT_CLAIM_TITLE;
 }
 
 function normalizeHex(input: string | undefined, fallback: string) {
