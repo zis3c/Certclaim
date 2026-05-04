@@ -34,7 +34,7 @@ export default async function AdminClaimAccessPage() {
   }
 
   return (
-    <div className="flex min-h-full justify-center px-4 py-6 pb-20 animate-fade-in sm:px-6 md:py-10 lg:items-center lg:py-0">
+    <div className="flex min-h-full flex-col items-center px-4 py-6 pb-20 animate-fade-in sm:px-6 md:py-10 lg:h-full lg:min-h-0 lg:justify-center lg:py-0">
       <div className="w-full max-w-3xl">
         <QRCard initialStatus={settings.claimStatus} claimUrl={claimUrl} />
       </div>

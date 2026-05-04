@@ -24,8 +24,8 @@ export default async function ProtectedAdminLayout({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
           <AdminSidebar />
 
-          <section className="min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
-            <div className="min-h-full">{children}</div>
+          <section className="min-h-0 flex-1 overflow-y-auto md:h-full md:overflow-hidden">
+            <div className="min-h-full md:h-full">{children}</div>
           </section>
         </div>
       </div>
