@@ -292,6 +292,21 @@ select:disabled {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   }
 
+  .admin-nav-active {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+
+  html[data-theme="dark"] .admin-nav-active {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .admin-nav-active svg {
+    color: currentColor !important;
+    stroke: currentColor !important;
+  }
+
   .admin-brand-borders :is(.border, .border-t, .border-r, .border-b, .border-l) {
     border-color: color-mix(in srgb, var(--border) 85%, var(--primary) 15%) !important;
   }

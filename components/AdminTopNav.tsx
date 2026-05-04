@@ -63,7 +63,7 @@ export default function AdminTopNav({ compact = false }: AdminTopNavProps) {
                 "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors sm:text-sm",
                 compact ? "md:w-full" : "w-full",
                 isActive
-                  ? "border-primary/45 bg-primary text-primary-foreground"
+                  ? "admin-nav-active border-transparent"
                   : "border-border/70 bg-card/60 text-muted-foreground hover:text-foreground"
               )}
             >

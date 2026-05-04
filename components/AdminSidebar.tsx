@@ -79,7 +79,7 @@ export default function AdminSidebar() {
                   className={cn(
                     "flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-all duration-200",
                     isActive
-                      ? "bg-black font-medium text-white dark:bg-white dark:text-black"
+                      ? "admin-nav-active font-medium"
                       : "font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     isCollapsed ? "md:justify-center md:px-0" : "md:justify-start"
                   )}
