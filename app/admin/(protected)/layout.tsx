@@ -18,7 +18,7 @@ export default async function ProtectedAdminLayout({
   }
 
   return (
-    <main className="admin-brand-borders h-screen overflow-hidden bg-background md:overflow-hidden">
+    <main className="admin-brand-borders h-screen overflow-hidden md:overflow-hidden">
       <div className="flex h-full flex-col md:flex-row">
         {/* Mobile: scrollable container for the whole view if needed, Desktop: fixed */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
