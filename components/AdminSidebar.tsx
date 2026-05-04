@@ -88,14 +88,14 @@ export default function AdminSidebar() {
                     isCollapsed ? "md:justify-center md:px-0" : "md:justify-start"
                   )}
                   style={isActive ? {
-                    backgroundColor: 'color-mix(in srgb, var(--primary), transparent 20%)',
-                    color: 'var(--primary-foreground)',
-                    boxShadow: '0 0 0 1px color-mix(in srgb, var(--primary), transparent 40%)'
+                    backgroundColor: '#000000',
+                    color: '#ffffff',
+                    boxShadow: '0 0 0 1px color-mix(in srgb, #ffffff, transparent 82%), 0 10px 28px rgba(0, 0, 0, 0.28)'
                   } : {}}
                 >
                   <Icon 
                     className={cn("h-4 w-4 shrink-0")} 
-                    style={isActive ? { color: 'var(--primary-foreground)', strokeWidth: 3 } : {}}
+                    style={isActive ? { color: '#ffffff', strokeWidth: 3 } : {}}
                   />
                   <span className={cn("whitespace-nowrap", isCollapsed && "md:hidden")}>
                     {item.label}

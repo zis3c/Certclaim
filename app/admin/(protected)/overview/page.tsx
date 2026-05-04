@@ -35,7 +35,7 @@ export default async function AdminOverviewPage() {
 
   if (setupError) {
     return (
-      <div className="flex h-full flex-col p-6 animate-fade-in">
+      <div className="flex min-h-full flex-col p-4 pb-20 animate-fade-in sm:p-6 sm:pb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
           <Badge variant="warning">Data Unavailable</Badge>
@@ -90,7 +90,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <div className="flex h-full flex-col p-6 animate-fade-in">
+    <div className="flex min-h-full flex-col p-4 pb-20 animate-fade-in sm:p-6 sm:pb-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div>

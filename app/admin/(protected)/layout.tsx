@@ -21,11 +21,11 @@ export default async function ProtectedAdminLayout({
     <main className="admin-brand-borders h-screen overflow-hidden md:overflow-hidden">
       <div className="flex h-full flex-col md:flex-row">
         {/* Mobile: scrollable container for the whole view if needed, Desktop: fixed */}
-        <div className="flex flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
           <AdminSidebar />
 
-          <section className="flex-1 overflow-hidden">
-            <div className="h-full">{children}</div>
+          <section className="min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
+            <div className="min-h-full">{children}</div>
           </section>
         </div>
       </div>
