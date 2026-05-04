@@ -354,7 +354,7 @@ export default function AdminSettingsPanel() {
 
         {/* THEME TAB */}
         {activeTab === "theme" && (
-          <div className="max-w-md space-y-3">
+          <div className="max-w-md space-y-3 p-1">
             <div className="flex items-center gap-2 mb-3">
               <Palette className="h-4 w-4 text-primary" />
               <p className="text-sm font-semibold text-foreground">Claim Page Config</p>
