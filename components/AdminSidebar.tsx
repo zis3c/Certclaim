@@ -51,13 +51,7 @@ export default function AdminSidebar() {
               isCollapsed ? "justify-center p-2" : "justify-start gap-3 px-3 py-2"
             )}
           >
-            <span 
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1"
-              style={{ 
-                backgroundColor: 'color-mix(in srgb, var(--primary), transparent 80%)',
-                boxShadow: '0 0 0 1px color-mix(in srgb, var(--primary), transparent 65%)'
-              }}
-            >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
               <BrandLogo className="h-full w-full p-1 text-primary" />
             </span>
             {!isCollapsed ? (
@@ -84,19 +78,13 @@ export default function AdminSidebar() {
                   title={isCollapsed ? item.label : undefined}
                   className={cn(
                     "flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-all duration-200",
-                    isActive ? "font-bold" : "font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    isActive
+                      ? "bg-black font-medium text-white dark:bg-white dark:text-black"
+                      : "font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     isCollapsed ? "md:justify-center md:px-0" : "md:justify-start"
                   )}
-                  style={isActive ? {
-                    backgroundColor: '#000000',
-                    color: '#ffffff',
-                    boxShadow: '0 0 0 1px color-mix(in srgb, #ffffff, transparent 82%), 0 10px 28px rgba(0, 0, 0, 0.28)'
-                  } : {}}
                 >
-                  <Icon 
-                    className={cn("h-4 w-4 shrink-0")} 
-                    style={isActive ? { color: '#ffffff', strokeWidth: 3 } : {}}
-                  />
+                  <Icon className={cn("h-4 w-4 shrink-0", isActive && "stroke-[2.5]")} />
                   <span className={cn("whitespace-nowrap", isCollapsed && "md:hidden")}>
                     {item.label}
                   </span>

@@ -25,7 +25,7 @@ export default async function AdminAttendancePage() {
 
   if (setupError) {
     return (
-      <div className="flex h-full flex-col p-6 animate-fade-in">
+      <div className="flex min-h-full flex-col p-4 pb-20 animate-fade-in sm:p-6 sm:pb-6">
         <h1 className="text-lg font-semibold text-foreground">Attendance</h1>
         <div className="mt-4">
           <AdminSetupNeeded message={setupError} />
@@ -35,7 +35,7 @@ export default async function AdminAttendancePage() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center p-6 animate-fade-in">
+    <div className="flex min-h-full justify-center px-4 py-6 pb-20 animate-fade-in sm:px-6 md:py-10 lg:items-center lg:py-0">
       <div className="w-full max-w-xl">
         <AttendanceCheck
           attendedCount={attendedCount}
