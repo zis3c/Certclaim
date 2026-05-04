@@ -45,7 +45,7 @@
   --sidebar-active-bg: color-mix(in srgb, var(--primary), transparent 86%);
   --sidebar-active-text: var(--primary-foreground);
   --participant-bg: color-mix(in srgb, var(--primary), transparent 82%);
-  --participant-text: var(--primary-foreground);
+  --participant-text: var(--primary);
 }
 
 /* ── Light Theme ── */
