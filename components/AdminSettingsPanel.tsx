@@ -313,13 +313,9 @@ export default function AdminSettingsPanel() {
             className={cn(
               "px-4 py-2 text-xs transition-all duration-200 rounded-t-lg border-b-2 -mb-px",
               activeTab === tab.id
-                ? "border-primary font-bold"
+                ? "admin-tab-active font-semibold"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30 font-medium"
             )}
-            style={activeTab === tab.id ? {
-              backgroundColor: 'color-mix(in srgb, var(--primary), transparent 20%)',
-              color: 'var(--primary-foreground)'
-            } : {}}
           >
             {tab.label}
           </button>

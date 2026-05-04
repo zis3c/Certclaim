@@ -307,6 +307,18 @@ select:disabled {
     stroke: currentColor !important;
   }
 
+  .admin-tab-active {
+    background: #000000 !important;
+    border-color: #000000 !important;
+    color: #ffffff !important;
+  }
+
+  html[data-theme="dark"] .admin-tab-active {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
   .admin-brand-borders :is(.border, .border-t, .border-r, .border-b, .border-l) {
     border-color: color-mix(in srgb, var(--border) 85%, var(--primary) 15%) !important;
   }
