@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">CertClaim logo</title>
+  <desc id="desc">Minimal certificate outline with check mark.</desc>
+  <path d="M156 92h145l71 72v256H156V92Z" fill="#111111" opacity="0.1"/>
+  <path d="M301 92v72h71" fill="#111111" opacity="0.18"/>
+  <path d="M156 92h145l71 72v256H156V92Z" fill="none" stroke="#111111" stroke-linejoin="round" stroke-width="26"/>
+  <path d="M301 92v72h71" fill="none" stroke="#111111" stroke-linecap="round" stroke-linejoin="round" stroke-width="26"/>
+  <path d="M207 218h98M207 270h98M207 322h55" fill="none" stroke="#111111" stroke-linecap="round" stroke-width="22" opacity="0.55"/>
+  <path d="m265 329 38 38 82-100" fill="none" stroke="#111111" stroke-linecap="round" stroke-linejoin="round" stroke-width="34"/>
+</svg>

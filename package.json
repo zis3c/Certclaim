@@ -1,0 +1,41 @@
+{
+  "name": "certificate-claim-system",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node --no-deprecation ./node_modules/next/dist/bin/next dev",
+    "turbo": "node --no-deprecation ./node_modules/next/dist/bin/next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "hash:admin-password": "node scripts/hash-admin-password.mjs",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.37.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "googleapis": "^171.4.0",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.4",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.20.0",
+    "eslint-config-next": "16.2.4",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "postcss": "$postcss"
+  }
+}

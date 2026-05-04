@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# environment and secrets
+.env
+.env*.local
+droplet.env
+*.pem
+*.key
+
+# service account / exported data files
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# local logs and temp files
+*.log
+*.err
+.next-dev.*
+.cert-management-dev.*
+.tmp-*
+logs/
+
+# archives and deploy bundles
+*.tar
+*.tar.gz
+*.zip
+deploy.tar.gz
+
+# platform metadata
+.vercel/
+
+# local one-off scripts with embedded secrets
+add-envs.js
+test-hash.js
+
+# OS/editor
+.DS_Store
+Thumbs.db
