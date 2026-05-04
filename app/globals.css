@@ -114,6 +114,10 @@ body::before {
   pointer-events: none;
 }
 
+body:has(.admin-shell)::before {
+  display: none;
+}
+
 html[data-theme="light"] body::before {
   background:
     radial-gradient(ellipse 80% 50% at 20% -10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
