@@ -18,7 +18,8 @@ export function requireSameOrigin(request: NextRequest) {
 
   try {
     const originUrl = new URL(origin);
-    if (originUrl.host !== host) {
+    const requestOrigin = request.nextUrl.origin;
+    if (originUrl.origin !== requestOrigin && originUrl.host !== host) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
   } catch {

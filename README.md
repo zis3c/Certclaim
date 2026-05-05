@@ -69,24 +69,22 @@ npm run dev
 - Eligible certificate values: `YES`, `ELIGIBLE`, `LAYAK`, `SIAP`, `APPROVED`.
 - Rate limiting uses Upstash Redis when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set. Without them, it falls back to in-memory limits for local/single-server use.
 
-## GitHub Auto Deployment
+## GitHub Auto Deployment (Vercel)
 
 The repository includes `.github/workflows/deploy.yml`. On every push to `main`, GitHub Actions will:
 
 1. Install dependencies with `npm ci`.
 2. Build the app with `npm run build`.
-3. Package the build and source files.
-4. Upload the archive to the server over SSH.
-5. Extract it, install production dependencies, and restart the PM2 app.
+3. Deploy production to Vercel.
+
+On push to `develop`, it deploys a Vercel preview.
 
 Add these repository secrets in GitHub under **Settings > Secrets and variables > Actions**:
 
 ```text
-DEPLOY_HOST=your_server_ip_or_domain
-DEPLOY_USER=your_server_user
-DEPLOY_PATH=your_app_directory_on_the_server
-DEPLOY_SSH_KEY=your_private_ssh_key
-PM2_APP_NAME=your_pm2_app_name
+VERCEL_TOKEN=your_vercel_token
+VERCEL_ORG_ID=your_vercel_org_id
+VERCEL_PROJECT_ID=your_vercel_project_id
 ```
 
-Keep real `.env.local`, Google service account keys, admin passwords, and server env files only on the server or in secure secret storage. They are intentionally ignored by Git.
+Keep real `.env.local`, Google service account keys, and admin secrets in Vercel environment variables or secure secret storage. They are intentionally ignored by Git.

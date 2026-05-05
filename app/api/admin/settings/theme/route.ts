@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecurity";
 import { auditLog } from "@/lib/auditLog";
 import { getAdminSession } from "@/lib/auth";
 import { DEFAULT_CLAIM_TITLE, normalizeClaimTitle } from "@/lib/claimTheme";
 import { readManagedEnvValues, updateManagedEnvValues } from "@/lib/envLocal";
+import { getClientIp } from "@/lib/rateLimit";
 import { requireSameOrigin } from "@/lib/requestSecurity";
 
 export const runtime = "nodejs";
@@ -56,7 +58,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as ThemeBody;
+  const ip = getClientIp(request);
+  const limited = await applyRateLimit(`admin-settings-theme:${ip}`, 20, 60 * 1000);
+  if (limited) return limited;
+
+  const parsed = await parseJsonBody<ThemeBody>(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const brandMode = normalizeBrandMode(body.brandMode);
   if (brandMode === "custom" && typeof body.primaryColor !== "string") {
     return NextResponse.json(
@@ -76,27 +84,32 @@ export async function POST(request: NextRequest) {
   }
   const claimTitle = normalizeClaimTitle(body.claimTitle);
 
-  await updateManagedEnvValues({
-    NEXT_PUBLIC_BRAND_MODE: brandMode,
-    NEXT_PUBLIC_PRIMARY_COLOR: color || DEFAULT_PRIMARY_COLOR,
-    NEXT_PUBLIC_CLAIM_TITLE: claimTitle
-  });
-  await auditLog({
-    event: "THEME_UPDATED",
-    request,
-    metadata: {
+  try {
+    await updateManagedEnvValues({
+      NEXT_PUBLIC_BRAND_MODE: brandMode,
+      NEXT_PUBLIC_PRIMARY_COLOR: color || DEFAULT_PRIMARY_COLOR,
+      NEXT_PUBLIC_CLAIM_TITLE: claimTitle
+    });
+    await auditLog({
+      event: "THEME_UPDATED",
+      request,
+      metadata: {
+        brandMode,
+        primaryColor: color || DEFAULT_PRIMARY_COLOR,
+        claimTitle
+      }
+    });
+    return NextResponse.json({
+      message: "Claim page theme updated.",
       brandMode,
       primaryColor: color || DEFAULT_PRIMARY_COLOR,
-      claimTitle
-    }
-  });
-  return NextResponse.json({
-    message: "Claim page theme updated.",
-    brandMode,
-    primaryColor: color || DEFAULT_PRIMARY_COLOR,
-    defaultPrimaryColor: DEFAULT_PRIMARY_COLOR,
-    claimTitle,
-    defaultClaimTitle: DEFAULT_CLAIM_TITLE,
-    restartRequired: false
-  });
+      defaultPrimaryColor: DEFAULT_PRIMARY_COLOR,
+      claimTitle,
+      defaultClaimTitle: DEFAULT_CLAIM_TITLE,
+      restartRequired: false
+    });
+  } catch (error) {
+    console.error("admin settings theme failed", error);
+    return publicServerError();
+  }
 }

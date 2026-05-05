@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecurity";
 import { createClaimToken } from "@/lib/claimToken";
 import { getClaimSettings, findParticipantByMatric } from "@/lib/googleSheets";
-import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/rateLimit";
 import { validateMatricInput } from "@/lib/validation";
 import { canClaimCertificate, hasAttended, isCertificateEligible } from "@/types/participant";
 
@@ -11,14 +12,12 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request);
-    const ipLimited = await rateLimit({
-      key: `check-matric:ip:${ip}`,
-      limit: 30,
-      windowMs: 60 * 1000
-    });
+    const ipLimited = await applyRateLimit(`check-matric:ip:${ip}`, 20, 60 * 1000);
     if (ipLimited) return ipLimited;
 
-    const body = (await request.json()) as { matricNo?: unknown };
+    const parsed = await parseJsonBody<{ matricNo?: unknown }>(request);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const validated = validateMatricInput(body.matricNo);
 
     if (!validated.ok) {
@@ -28,11 +27,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const matricLimited = await rateLimit({
-      key: `check-matric:matric:${validated.matricNo.toUpperCase()}:${ip}`,
-      limit: 6,
-      windowMs: 10 * 60 * 1000
-    });
+    const matricLimited = await applyRateLimit(
+      `check-matric:matric:${validated.matricNo.toUpperCase()}:${ip}`,
+      4,
+      10 * 60 * 1000
+    );
     if (matricLimited) return matricLimited;
 
     const settings = await getClaimSettings();
@@ -82,13 +81,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        found: false,
-        eligible: false,
-        message: error instanceof Error ? error.message : "Unable to check matric number."
-      },
-      { status: 500 }
-    );
+    console.error("check-matric failed", error);
+    return publicServerError();
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecurity";
 import { auditLog } from "@/lib/auditLog";
 import { getAdminSession } from "@/lib/auth";
 import {
@@ -6,6 +7,7 @@ import {
   findParticipantForAttendance,
   markParticipantAttended
 } from "@/lib/googleSheets";
+import { getClientIp } from "@/lib/rateLimit";
 import { requireSameOrigin } from "@/lib/requestSecurity";
 import type { RecipientSource } from "@/types/participant";
 import { hasAttended } from "@/types/participant";
@@ -23,13 +25,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = (await request.json()) as {
+    const ip = getClientIp(request);
+    const limited = await applyRateLimit(`admin-attendance:${ip}`, 30, 60 * 1000);
+    if (limited) return limited;
+
+    const parsed = await parseJsonBody<{
       action?: unknown;
       matricNo?: unknown;
       query?: unknown;
       rowNumber?: unknown;
       source?: unknown;
-    };
+    }>(request, 10 * 1024);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const rawQuery = typeof body.query === "string" ? body.query : body.matricNo;
     const query = typeof rawQuery === "string" ? rawQuery.trim() : "";
     const rowNumber = typeof body.rowNumber === "number" ? body.rowNumber : undefined;
@@ -111,9 +119,7 @@ export async function POST(request: NextRequest) {
       message: `${participant.student_name} marked as attended.`
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Unable to mark attendance." },
-      { status: 500 }
-    );
+    console.error("admin attendance failed", error);
+    return publicServerError();
   }
 }

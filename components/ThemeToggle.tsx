@@ -18,9 +18,6 @@ export default function ThemeToggle({ initialTheme }: ThemeToggleProps) {
     document.documentElement.setAttribute("data-theme", nextTheme);
     setTheme(nextTheme);
     document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
-    if (nextTheme !== initialTheme) {
-      window.location.reload();
-    }
   }, [initialTheme]);
 
   function toggleTheme() {
@@ -29,7 +26,6 @@ export default function ThemeToggle({ initialTheme }: ThemeToggleProps) {
     document.documentElement.setAttribute("data-theme", nextTheme);
     window.localStorage.setItem("theme", nextTheme);
     document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
-    window.location.reload();
   }
 
   return (

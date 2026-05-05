@@ -166,19 +166,16 @@ export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
                     </Label>
                     <ShieldCheck className="h-4 w-4 text-primary/70" />
                   </div>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="matricNo"
-                      value={matricNo}
-                      onChange={(event) => setMatricNo(event.target.value.toUpperCase())}
-                      className="h-11 bg-background/70 pl-9"
-                      placeholder="Example: ABC1234"
-                      disabled={isChecking}
-                      maxLength={40}
-                      autoComplete="off"
-                    />
-                  </div>
+                  <Input
+                    id="matricNo"
+                    value={matricNo}
+                    onChange={(event) => setMatricNo(event.target.value.toUpperCase())}
+                    className="h-11 bg-background/70"
+                    placeholder="Example: ABC1234"
+                    disabled={isChecking}
+                    maxLength={40}
+                    autoComplete="off"
+                  />
                 </div>
 
                 <Button

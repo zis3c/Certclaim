@@ -25,11 +25,12 @@ export default async function ClaimPage() {
 
   return (
     <main
-      className="relative flex h-screen w-full overflow-hidden bg-background text-foreground"
+      className="relative flex h-screen w-full overflow-hidden bg-transparent text-foreground"
       style={claimBrandStyle}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,color-mix(in_srgb,var(--primary)_12%,transparent),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(color-mix(in_srgb,var(--primary)_4%,transparent)_1px,transparent_1px),linear-gradient(90deg,color-mix(in_srgb,var(--primary)_4%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-40 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_80%)]" />
 
       <div className="relative z-10 flex h-full w-full items-center justify-center px-4 py-4 sm:px-6">
         <section className="grid w-full max-w-5xl items-center gap-6 md:grid-cols-[0.9fr_1.1fr]">

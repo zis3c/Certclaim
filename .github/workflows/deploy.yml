@@ -4,99 +4,44 @@ on:
   push:
     branches:
       - main
+      - develop
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-preview:
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build
         run: npm run build
-
-      - name: Create deploy archive
-        run: |
-          tar -czf deploy.tar.gz \
-            .next \
-            public \
-            package.json \
-            package-lock.json \
-            next.config.mjs \
-            postcss.config.mjs \
-            tailwind.config.ts \
-            tsconfig.json \
-            components \
-            app \
-            lib \
-            types \
-            scripts
-
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Validate deploy config
+      - name: Deploy Preview to Vercel
+        run: npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
-        run: |
-          test -n "$DEPLOY_HOST" || (echo "DEPLOY_HOST missing" && exit 1)
-          test -n "$DEPLOY_USER" || (echo "DEPLOY_USER missing" && exit 1)
-          test -n "$DEPLOY_PATH" || (echo "DEPLOY_PATH missing" && exit 1)
-          test -n "$PM2_APP_NAME" || (echo "PM2_APP_NAME missing" && exit 1)
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Ensure remote path exists
-        run: |
-          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
-
-      - name: Upload archive
-        run: |
-          scp -i ~/.ssh/deploy_key deploy.tar.gz \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
-
-      - name: Restart app
-        run: |
-          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "cd '${{ secrets.DEPLOY_PATH }}' && \
-             tar -xzf deploy.tar.gz && \
-             npm ci --omit=dev --no-audit --no-fund && \
-             if pm2 describe '${{ secrets.PM2_APP_NAME }}' >/dev/null 2>&1; then \
-               PORT=3001 pm2 restart '${{ secrets.PM2_APP_NAME }}' --update-env; \
-             else \
-               PORT=3001 pm2 start npm --name '${{ secrets.PM2_APP_NAME }}' --max-memory-restart 320M -- start; \
-             fi && \
-             pm2 save"
-
-      - name: Health check
-        run: |
-          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
-            set -e
-            for i in $(seq 1 20); do
-              if curl -fsS --max-time 10 http://127.0.0.1:3001/claim >/dev/null; then
-                echo "Health check passed"
-                exit 0
-              fi
-              echo "Waiting for app to become healthy... ($i/20)"
-              sleep 5
-            done
-            echo "Health check failed"
-            exit 1
-          '
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Deploy Production to Vercel
+        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecurity";
 import { auditLog } from "@/lib/auditLog";
 import { getAdminSession } from "@/lib/auth";
 import {
@@ -7,6 +8,7 @@ import {
   updateManagedEnvValues,
   type ManagedEnvKey
 } from "@/lib/envLocal";
+import { getClientIp } from "@/lib/rateLimit";
 import { requireSameOrigin } from "@/lib/requestSecurity";
 
 export const runtime = "nodejs";
@@ -67,7 +69,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as UpdateEnvBody;
+  const ip = getClientIp(request);
+  const limited = await applyRateLimit(`admin-settings-env:${ip}`, 10, 60 * 1000);
+  if (limited) return limited;
+
+  const parsed = await parseJsonBody<UpdateEnvBody>(request, 32 * 1024);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const updates = body.updates || {};
   const validUpdates: Partial<Record<ManagedEnvKey, string>> = {};
 
@@ -79,7 +87,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    validUpdates[key as ManagedEnvKey] = value.trim();
+    validUpdates[key as ManagedEnvKey] = value.trim().slice(0, 4096);
   }
 
   if (Object.keys(validUpdates).length === 0) {
@@ -89,19 +97,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await updateManagedEnvValues(validUpdates);
-  await auditLog({
-    event: "ENV_UPDATED",
-    request,
-    metadata: {
-      keys: Object.keys(validUpdates).sort().join(",")
-    }
-  });
-  const envValues = await readManagedEnvValues();
+  try {
+    await updateManagedEnvValues(validUpdates);
+    await auditLog({
+      event: "ENV_UPDATED",
+      request,
+      metadata: {
+        keys: Object.keys(validUpdates).sort().join(",")
+      }
+    });
+    const envValues = await readManagedEnvValues();
 
-  return NextResponse.json({
-    message: "Environment config updated.",
-    env: toResponseEnv(envValues),
-    restartRequired: true
-  });
+    return NextResponse.json({
+      message: "Environment config updated.",
+      env: toResponseEnv(envValues),
+      restartRequired: true
+    });
+  } catch (error) {
+    console.error("admin settings env failed", error);
+    return publicServerError();
+  }
 }

@@ -42,3 +42,4 @@ test-hash.js
 # OS/editor
 .DS_Store
 Thumbs.db
+.vercel

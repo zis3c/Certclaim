@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecurity";
 import { verifyClaimToken } from "@/lib/claimToken";
 import { generateCertificatePdf } from "@/lib/certificate";
 import {
@@ -6,7 +7,7 @@ import {
   getClaimSettings,
   markCertificateClaimed
 } from "@/lib/googleSheets";
-import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/rateLimit";
 import { validateMatricInput } from "@/lib/validation";
 import { canClaimCertificate, hasAttended, isCertificateEligible, normalizeMatric } from "@/types/participant";
 
@@ -16,14 +17,12 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request);
-    const ipLimited = await rateLimit({
-      key: `download-certificate:ip:${ip}`,
-      limit: 12,
-      windowMs: 60 * 1000
-    });
+    const ipLimited = await applyRateLimit(`download-certificate:ip:${ip}`, 8, 60 * 1000);
     if (ipLimited) return ipLimited;
 
-    const body = (await request.json()) as { matricNo?: unknown; claimToken?: unknown };
+    const parsed = await parseJsonBody<{ matricNo?: unknown; claimToken?: unknown }>(request);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const validated = validateMatricInput(body.matricNo);
 
     if (!validated.ok) {
@@ -37,11 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const matricLimited = await rateLimit({
-      key: `download-certificate:matric:${validated.matricNo.toUpperCase()}:${ip}`,
-      limit: 3,
-      windowMs: 10 * 60 * 1000
-    });
+    const matricLimited = await applyRateLimit(
+      `download-certificate:matric:${validated.matricNo.toUpperCase()}:${ip}`,
+      2,
+      10 * 60 * 1000
+    );
     if (matricLimited) return matricLimited;
 
     const settings = await getClaimSettings();
@@ -86,9 +85,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Unable to download certificate." },
-      { status: 500 }
-    );
+    console.error("download-certificate failed", error);
+    return publicServerError();
   }
 }
