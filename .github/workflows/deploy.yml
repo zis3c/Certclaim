@@ -77,10 +77,26 @@ jobs:
           ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
             "cd '${{ secrets.DEPLOY_PATH }}' && \
              tar -xzf deploy.tar.gz && \
-             npm install --omit=dev && \
+             npm ci --omit=dev --no-audit --no-fund && \
              if pm2 describe '${{ secrets.PM2_APP_NAME }}' >/dev/null 2>&1; then \
                PORT=3001 pm2 restart '${{ secrets.PM2_APP_NAME }}' --update-env; \
              else \
-               PORT=3001 pm2 start npm --name '${{ secrets.PM2_APP_NAME }}' -- start; \
+               PORT=3001 pm2 start npm --name '${{ secrets.PM2_APP_NAME }}' --max-memory-restart 320M -- start; \
              fi && \
              pm2 save"
+
+      - name: Health check
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
+            set -e
+            for i in $(seq 1 20); do
+              if curl -fsS --max-time 10 http://127.0.0.1:3001/claim >/dev/null; then
+                echo "Health check passed"
+                exit 0
+              fi
+              echo "Waiting for app to become healthy... ($i/20)"
+              sleep 5
+            done
+            echo "Health check failed"
+            exit 1
+          '
