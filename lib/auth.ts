@@ -93,7 +93,24 @@ export async function getAdminSession() {
 export function isAdminPassword(password: string) {
   const configuredHash = process.env.ADMIN_PASSWORD_HASH;
   if (configuredHash) {
-    return verifyAdminPasswordHash(password, configuredHash);
+    // If hash valid format, use strong hash check first.
+    if (verifyAdminPasswordHash(password, configuredHash)) {
+      return true;
+    }
+
+    // If hash looks malformed, fall back to ADMIN_PASSWORD so deploy mis-escaping
+    // (for example "\$" in env) does not hard-lock admin login.
+    const hashParts = configuredHash.split("$");
+    const hashLooksValid =
+      hashParts.length === 4 &&
+      hashParts[0] === passwordHashPrefix &&
+      Number.isSafeInteger(Number(hashParts[1])) &&
+      Number(hashParts[1]) >= 100000 &&
+      Boolean(hashParts[2]) &&
+      Boolean(hashParts[3]);
+    if (hashLooksValid) {
+      return false;
+    }
   }
 
   const configuredPassword = process.env.ADMIN_PASSWORD;
