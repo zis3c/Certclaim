@@ -79,8 +79,8 @@ jobs:
              tar -xzf deploy.tar.gz && \
              npm install --omit=dev && \
              if pm2 describe '${{ secrets.PM2_APP_NAME }}' >/dev/null 2>&1; then \
-               pm2 restart '${{ secrets.PM2_APP_NAME }}' --update-env; \
+               PORT=3001 pm2 restart '${{ secrets.PM2_APP_NAME }}' --update-env; \
              else \
-               pm2 start npm --name '${{ secrets.PM2_APP_NAME }}' -- start; \
+               PORT=3001 pm2 start npm --name '${{ secrets.PM2_APP_NAME }}' -- start; \
              fi && \
              pm2 save"
