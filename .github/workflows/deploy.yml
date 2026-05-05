@@ -50,6 +50,23 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Validate deploy config
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        run: |
+          test -n "$DEPLOY_HOST" || (echo "DEPLOY_HOST missing" && exit 1)
+          test -n "$DEPLOY_USER" || (echo "DEPLOY_USER missing" && exit 1)
+          test -n "$DEPLOY_PATH" || (echo "DEPLOY_PATH missing" && exit 1)
+          test -n "$PM2_APP_NAME" || (echo "PM2_APP_NAME missing" && exit 1)
+
+      - name: Ensure remote path exists
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
+
       - name: Upload archive
         run: |
           scp -i ~/.ssh/deploy_key deploy.tar.gz \
