@@ -14,6 +14,66 @@ import { canClaimCertificate, hasAttended, isCertificateEligible, normalizeMatri
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const PDF_CACHE_TTL_MS = 10 * 60 * 1000;
+const CLAIM_SIDE_EFFECT_LOCK_MS = 30 * 1000;
+const MAX_CONCURRENT_PDF_JOBS = 10;
+const MAX_WAITING_PDF_JOBS = 100;
+
+type CachedPdfEntry = {
+  pdfBytes: Uint8Array;
+  expiresAt: number;
+};
+
+const cachedPdfs = new Map<string, CachedPdfEntry>();
+const inflightPdfJobs = new Map<string, Promise<Uint8Array>>();
+const claimSideEffectLocks = new Map<string, number>();
+let activePdfJobs = 0;
+const pdfJobWaiters: Array<() => void> = [];
+
+class PdfQueueBusyError extends Error {
+  queuePosition: number;
+
+  constructor(queuePosition: number) {
+    super("PDF queue is busy");
+    this.queuePosition = queuePosition;
+  }
+}
+
+function cleanupMemory(now: number) {
+  for (const [key, entry] of cachedPdfs) {
+    if (entry.expiresAt <= now) {
+      cachedPdfs.delete(key);
+    }
+  }
+
+  for (const [key, lockedUntil] of claimSideEffectLocks) {
+    if (lockedUntil <= now) {
+      claimSideEffectLocks.delete(key);
+    }
+  }
+}
+
+async function runWithPdfConcurrencyLimit<T>(job: () => Promise<T>) {
+  if (activePdfJobs >= MAX_CONCURRENT_PDF_JOBS && pdfJobWaiters.length >= MAX_WAITING_PDF_JOBS) {
+    throw new PdfQueueBusyError(pdfJobWaiters.length + 1);
+  }
+
+  if (activePdfJobs >= MAX_CONCURRENT_PDF_JOBS) {
+    await new Promise<void>((resolve) => {
+      pdfJobWaiters.push(resolve);
+    });
+  }
+
+  activePdfJobs += 1;
+  try {
+    return await job();
+  } finally {
+    activePdfJobs = Math.max(0, activePdfJobs - 1);
+    const next = pdfJobWaiters.shift();
+    if (next) next();
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request);
@@ -73,8 +133,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pdfBytes = await generateCertificatePdf(participant);
-    await markCertificateClaimed(participant);
+    const matricKey = normalizeMatric(participant.matric_no);
+    const now = Date.now();
+    cleanupMemory(now);
+
+    let pdfBytes: Uint8Array;
+    const cached = cachedPdfs.get(matricKey);
+    if (cached && cached.expiresAt > now) {
+      pdfBytes = cached.pdfBytes;
+    } else {
+      let pdfJob = inflightPdfJobs.get(matricKey);
+
+      if (!pdfJob) {
+        pdfJob = runWithPdfConcurrencyLimit(() => generateCertificatePdf(participant));
+        inflightPdfJobs.set(matricKey, pdfJob);
+      }
+
+      try {
+        pdfBytes = await pdfJob;
+      } finally {
+        if (inflightPdfJobs.get(matricKey) === pdfJob) {
+          inflightPdfJobs.delete(matricKey);
+        }
+      }
+
+      cachedPdfs.set(matricKey, {
+        pdfBytes,
+        expiresAt: now + PDF_CACHE_TTL_MS
+      });
+    }
+
+    const claimedAlready = participant.claim_status.trim().toUpperCase() === "CLAIMED";
+    const lockUntil = claimSideEffectLocks.get(matricKey) || 0;
+    if (!claimedAlready && lockUntil <= now) {
+      claimSideEffectLocks.set(matricKey, now + CLAIM_SIDE_EFFECT_LOCK_MS);
+      await markCertificateClaimed(participant);
+    }
 
     return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
@@ -85,6 +179,20 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
+    if (error instanceof PdfQueueBusyError) {
+      return NextResponse.json(
+        {
+          message: `Server is busy right now. Queue number: ${error.queuePosition}. Please retry shortly.`,
+          queuePosition: error.queuePosition
+        },
+        {
+          status: 503,
+          headers: {
+            "Retry-After": "10"
+          }
+        }
+      );
+    }
     console.error("download-certificate failed", error);
     return publicServerError();
   }

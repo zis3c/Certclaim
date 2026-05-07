@@ -10,6 +10,7 @@ export type Participant = {
   student_email: string;
   student_name: string;
   matric_no: string;
+  phone_no: string;
   student_course: string;
   payment_receipt: string;
   certificate_status: string;

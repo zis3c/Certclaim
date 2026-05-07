@@ -64,8 +64,8 @@ export default function AdminSidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-x-auto overflow-y-hidden px-2 py-3 md:overflow-x-hidden md:overflow-y-auto" aria-label="Admin sections">
-          <div className="flex min-w-max gap-0.5 md:min-w-0 md:flex-col">
+        <nav className="flex-1 overflow-hidden px-2 py-3 md:overflow-x-hidden md:overflow-y-auto" aria-label="Admin sections">
+          <div className="grid grid-cols-3 gap-1 md:flex md:min-w-0 md:flex-col">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -81,11 +81,12 @@ export default function AdminSidebar() {
                     isActive
                       ? "admin-nav-active font-medium"
                       : "font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                    isCollapsed ? "md:justify-center md:px-0" : "md:justify-start"
+                    "justify-center px-2 text-center md:text-left",
+                    isCollapsed ? "md:justify-center md:px-0" : "md:justify-start md:px-3"
                   )}
                 >
                   <Icon className={cn("h-4 w-4 shrink-0", isActive && "stroke-[2.5]")} />
-                  <span className={cn("whitespace-nowrap", isCollapsed && "md:hidden")}>
+                  <span className={cn("truncate text-[11px] leading-tight md:text-[13px] md:leading-normal", isCollapsed && "md:hidden")}>
                     {item.label}
                   </span>
                 </Link>

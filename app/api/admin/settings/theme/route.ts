@@ -3,7 +3,7 @@ import { applyRateLimit, parseJsonBody, publicServerError } from "@/lib/apiSecur
 import { auditLog } from "@/lib/auditLog";
 import { getAdminSession } from "@/lib/auth";
 import { DEFAULT_CLAIM_TITLE, normalizeClaimTitle } from "@/lib/claimTheme";
-import { readManagedEnvValues, updateManagedEnvValues } from "@/lib/envLocal";
+import { getClaimSettings, updateClaimThemeSettings } from "@/lib/googleSheets";
 import { getClientIp } from "@/lib/rateLimit";
 import { requireSameOrigin } from "@/lib/requestSecurity";
 
@@ -30,15 +30,15 @@ export async function GET() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const envValues = await readManagedEnvValues();
-  const brandMode = normalizeBrandMode(envValues.NEXT_PUBLIC_BRAND_MODE);
-  const primaryColor = normalizeColor(envValues.NEXT_PUBLIC_PRIMARY_COLOR);
+  const settings = await getClaimSettings();
+  const brandMode = normalizeBrandMode(settings.brandMode);
+  const primaryColor = normalizeColor(settings.primaryColor);
 
   return NextResponse.json({
     brandMode,
     primaryColor: brandMode === "default" ? DEFAULT_PRIMARY_COLOR : primaryColor || CUSTOM_PRIMARY_COLOR,
     defaultPrimaryColor: DEFAULT_PRIMARY_COLOR,
-    claimTitle: normalizeClaimTitle(envValues.NEXT_PUBLIC_CLAIM_TITLE),
+    claimTitle: normalizeClaimTitle(settings.claimTitle),
     defaultClaimTitle: DEFAULT_CLAIM_TITLE
   });
 }
@@ -85,10 +85,10 @@ export async function POST(request: NextRequest) {
   const claimTitle = normalizeClaimTitle(body.claimTitle);
 
   try {
-    await updateManagedEnvValues({
-      NEXT_PUBLIC_BRAND_MODE: brandMode,
-      NEXT_PUBLIC_PRIMARY_COLOR: color || DEFAULT_PRIMARY_COLOR,
-      NEXT_PUBLIC_CLAIM_TITLE: claimTitle
+    await updateClaimThemeSettings({
+      brandMode,
+      primaryColor: color || DEFAULT_PRIMARY_COLOR,
+      claimTitle
     });
     await auditLog({
       event: "THEME_UPDATED",

@@ -61,9 +61,9 @@ npm run dev
 - `PARTICIPANT_GOOGLE_SHEETS_ID` is the participant sheet.
 - `COMMITTEE_GOOGLE_SHEETS_ID` is optional. When set, committee records are loaded alongside participants.
 - Participant sheet layout:
-  A Email Address, B Timestamp, C Email, D Name, E Matric/ID, F Course, G Receipt, H Certificate Status, I Invoice Email, J Claim Status, K Claimed At, L Attendance Status, M Attended At.
+  A Email Address, B Timestamp, C Email, D Name, E Matric/ID, F No phone, G Course, H Receipt, I Certificate Status, J Invoice Email, K Claim Status, L Claimed At, M Attendance Status, N Attended At.
 - Committee sheet layout:
-  A Email Address, B Timestamp, C Email, D Name, E Matric/ID, F Course, G Sijil/Certificate Status, H Claim Status, I Claimed At, J Attendance Status, K Attended At.
+  A Email Address, B Timestamp, C Email, D Name, E Matric/ID, F No phone, G Course, H Sijil/Certificate Status, I Claim Status, J Claimed At, K Attendance Status, L Attended At.
 - The app adds `CLAIM STATUS`, `CLAIMED AT`, `ATTENDANCE STATUS`, and `ATTENDED AT` columns if missing.
 - Claim open/close status is stored in a small `SETTINGS` tab.
 - Eligible certificate values: `YES`, `ELIGIBLE`, `LAYAK`, `SIAP`, `APPROVED`.

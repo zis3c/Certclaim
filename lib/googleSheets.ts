@@ -14,11 +14,21 @@ if (typeof process !== "undefined" && typeof process.on === "function") {
 
 const SETTINGS_SHEET_NAME = "SETTINGS";
 const CLAIM_STATUS_KEY = "CLAIM_STATUS";
+const BRAND_MODE_KEY = "BRAND_MODE";
+const PRIMARY_COLOR_KEY = "PRIMARY_COLOR";
+const CLAIM_TITLE_KEY = "CLAIM_TITLE";
 
 // Performance Cache (60 seconds)
 const CACHE_TTL = 60 * 1000;
 let cachedParticipants: { data: Participant[]; timestamp: number } | null = null;
-let cachedSettings: { data: { claimStatus: ClaimStatus }; timestamp: number } | null = null;
+type ClaimSettings = {
+  claimStatus: ClaimStatus;
+  brandMode: "default" | "custom";
+  primaryColor: string;
+  claimTitle: string;
+};
+
+let cachedSettings: { data: ClaimSettings; timestamp: number } | null = null;
 const ensuredSystemColumns = new Set<string>();
 
 function getRequiredEnv(name: string) {
@@ -126,14 +136,14 @@ async function ensureSystemColumns(config: SheetConfig) {
   });
 
   const headers = headerRes.data.values?.[0] || [];
-  const claimStatusColumn = config.source === "committee" ? "H" : "J";
-  const claimedAtColumn = config.source === "committee" ? "I" : "K";
-  const attendanceStatusColumn = config.source === "committee" ? "J" : "L";
-  const attendedAtColumn = config.source === "committee" ? "K" : "M";
-  const claimStatusIndex = config.source === "committee" ? 7 : 9;
-  const claimedAtIndex = config.source === "committee" ? 8 : 10;
-  const attendanceStatusIndex = config.source === "committee" ? 9 : 11;
-  const attendedAtIndex = config.source === "committee" ? 10 : 12;
+  const claimStatusColumn = config.source === "committee" ? "I" : "K";
+  const claimedAtColumn = config.source === "committee" ? "J" : "L";
+  const attendanceStatusColumn = config.source === "committee" ? "K" : "M";
+  const attendedAtColumn = config.source === "committee" ? "L" : "N";
+  const claimStatusIndex = config.source === "committee" ? 8 : 10;
+  const claimedAtIndex = config.source === "committee" ? 9 : 11;
+  const attendanceStatusIndex = config.source === "committee" ? 10 : 12;
+  const attendedAtIndex = config.source === "committee" ? 11 : 13;
 
   if (!headers[claimStatusIndex]) {
     await sheets.spreadsheets.values.update({
@@ -184,14 +194,15 @@ function mapParticipant(row: string[] | undefined, index: number, source: Recipi
     student_email: rowValue(row, 2),
     student_name: rowValue(row, 3),
     matric_no: rowValue(row, 4),
-    student_course: rowValue(row, 5),
-    payment_receipt: source === "committee" ? "" : rowValue(row, 6),
-    certificate_status: source === "committee" ? rowValue(row, 6) : rowValue(row, 7),
-    invoice_email: source === "committee" ? "" : rowValue(row, 8),
-    claim_status: source === "committee" ? rowValue(row, 7) : rowValue(row, 9),
-    claimed_at: source === "committee" ? rowValue(row, 8) : rowValue(row, 10),
-    attendance_status: source === "committee" ? rowValue(row, 9) : rowValue(row, 11),
-    attended_at: source === "committee" ? rowValue(row, 10) : rowValue(row, 12)
+    phone_no: rowValue(row, 5),
+    student_course: rowValue(row, 6),
+    payment_receipt: source === "committee" ? "" : rowValue(row, 7),
+    certificate_status: source === "committee" ? rowValue(row, 7) : rowValue(row, 8),
+    invoice_email: source === "committee" ? "" : rowValue(row, 9),
+    claim_status: source === "committee" ? rowValue(row, 8) : rowValue(row, 10),
+    claimed_at: source === "committee" ? rowValue(row, 9) : rowValue(row, 11),
+    attendance_status: source === "committee" ? rowValue(row, 10) : rowValue(row, 12),
+    attended_at: source === "committee" ? rowValue(row, 11) : rowValue(row, 13)
   };
 }
 
@@ -212,7 +223,7 @@ export async function getParticipants() {
 
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId: config.spreadsheetId,
-        range: a1(config.sheetName, "A:M")
+        range: a1(config.sheetName, "A:N")
       });
 
       const rows = (res.data.values || []) as string[][];
@@ -310,8 +321,8 @@ export async function markCertificateClaimed(participant: Pick<Participant, "row
     range: a1(
       config.sheetName,
       config.source === "committee"
-        ? `H${participant.rowNumber}:I${participant.rowNumber}`
-        : `J${participant.rowNumber}:K${participant.rowNumber}`
+        ? `I${participant.rowNumber}:J${participant.rowNumber}`
+        : `K${participant.rowNumber}:L${participant.rowNumber}`
     ),
     valueInputOption: "RAW",
     requestBody: { values: [["CLAIMED", claimedAt]] }
@@ -340,8 +351,8 @@ export async function markParticipantAttended(participant: Pick<Participant, "ro
     range: a1(
       config.sheetName,
       config.source === "committee"
-        ? `J${participant.rowNumber}:K${participant.rowNumber}`
-        : `L${participant.rowNumber}:M${participant.rowNumber}`
+        ? `K${participant.rowNumber}:L${participant.rowNumber}`
+        : `M${participant.rowNumber}:N${participant.rowNumber}`
     ),
     valueInputOption: "RAW",
     requestBody: { values: [["ATTENDED", attendedAt]] }
@@ -361,8 +372,8 @@ export async function clearParticipantAttendance(participant: Pick<Participant, 
     range: a1(
       config.sheetName,
       config.source === "committee"
-        ? `J${participant.rowNumber}:K${participant.rowNumber}`
-        : `L${participant.rowNumber}:M${participant.rowNumber}`
+        ? `K${participant.rowNumber}:L${participant.rowNumber}`
+        : `M${participant.rowNumber}:N${participant.rowNumber}`
     ),
     valueInputOption: "RAW",
     requestBody: { values: [["", ""]] }
@@ -516,6 +527,9 @@ async function ensureSettingsSheet() {
 
   const rows = (settingsRes.data.values || []) as string[][];
   const hasClaimSetting = rows.some((row) => rowValue(row, 0) === CLAIM_STATUS_KEY);
+  const hasBrandModeSetting = rows.some((row) => rowValue(row, 0) === BRAND_MODE_KEY);
+  const hasPrimaryColorSetting = rows.some((row) => rowValue(row, 0) === PRIMARY_COLOR_KEY);
+  const hasClaimTitleSetting = rows.some((row) => rowValue(row, 0) === CLAIM_TITLE_KEY);
 
   if (!rows.length) {
     await sheets.spreadsheets.values.update({
@@ -525,21 +539,37 @@ async function ensureSettingsSheet() {
       requestBody: {
         values: [
           ["SETTING", "VALUE"],
-          [CLAIM_STATUS_KEY, "OPEN"]
+          [CLAIM_STATUS_KEY, "OPEN"],
+          [BRAND_MODE_KEY, process.env.NEXT_PUBLIC_BRAND_MODE === "custom" ? "custom" : "default"],
+          [PRIMARY_COLOR_KEY, process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#2563eb"],
+          [CLAIM_TITLE_KEY, process.env.NEXT_PUBLIC_CLAIM_TITLE || "Front End Web Design Essential"]
         ]
       }
     });
-  } else if (!hasClaimSetting) {
+  } else if (!hasClaimSetting || !hasBrandModeSetting || !hasPrimaryColorSetting || !hasClaimTitleSetting) {
+    const valuesToAppend: string[][] = [];
+    if (!hasClaimSetting) {
+      valuesToAppend.push([CLAIM_STATUS_KEY, "OPEN"]);
+    }
+    if (!hasBrandModeSetting) {
+      valuesToAppend.push([BRAND_MODE_KEY, process.env.NEXT_PUBLIC_BRAND_MODE === "custom" ? "custom" : "default"]);
+    }
+    if (!hasPrimaryColorSetting) {
+      valuesToAppend.push([PRIMARY_COLOR_KEY, process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#2563eb"]);
+    }
+    if (!hasClaimTitleSetting) {
+      valuesToAppend.push([CLAIM_TITLE_KEY, process.env.NEXT_PUBLIC_CLAIM_TITLE || "Front End Web Design Essential"]);
+    }
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: a1(SETTINGS_SHEET_NAME, "A:B"),
       valueInputOption: "RAW",
-      requestBody: { values: [[CLAIM_STATUS_KEY, "OPEN"]] }
+      requestBody: { values: valuesToAppend }
     });
   }
 }
 
-export async function getClaimSettings(): Promise<{ claimStatus: ClaimStatus }> {
+export async function getClaimSettings(): Promise<ClaimSettings> {
   noStore();
 
   // Return cached data if fresh
@@ -558,10 +588,18 @@ export async function getClaimSettings(): Promise<{ claimStatus: ClaimStatus }> 
   });
 
   const rows = (settingsRes.data.values || []) as string[][];
-  const settingRow = rows.find((row) => rowValue(row, 0) === CLAIM_STATUS_KEY);
-  const value = rowValue(settingRow, 1).toUpperCase();
+  const readSetting = (key: string) => rowValue(rows.find((row) => rowValue(row, 0) === key), 1);
+  const claimStatusValue = readSetting(CLAIM_STATUS_KEY).toUpperCase();
+  const brandModeValue = readSetting(BRAND_MODE_KEY);
+  const primaryColorValue = readSetting(PRIMARY_COLOR_KEY);
+  const claimTitleValue = readSetting(CLAIM_TITLE_KEY);
 
-  const result = { claimStatus: (value === "CLOSED" ? "CLOSED" : "OPEN") as ClaimStatus };
+  const result: ClaimSettings = {
+    claimStatus: (claimStatusValue === "CLOSED" ? "CLOSED" : "OPEN") as ClaimStatus,
+    brandMode: brandModeValue === "custom" ? "custom" : "default",
+    primaryColor: /^#([0-9a-fA-F]{6})$/.test(primaryColorValue) ? primaryColorValue : "#2563eb",
+    claimTitle: claimTitleValue.trim() ? claimTitleValue.trim().slice(0, 80) : "Front End Web Design Essential"
+  };
   
   // Update cache
   cachedSettings = { data: result, timestamp: Date.now() };
@@ -596,4 +634,46 @@ export async function updateClaimSettings(claimStatus: ClaimStatus) {
   cachedSettings = null;
 
   return { claimStatus };
+}
+
+export async function updateClaimThemeSettings(input: {
+  brandMode: "default" | "custom";
+  primaryColor: string;
+  claimTitle: string;
+}) {
+  noStore();
+  await ensureSettingsSheet();
+
+  const sheets = await getSheetsClient();
+  const spreadsheetId = getRequiredEnv("PARTICIPANT_GOOGLE_SHEETS_ID");
+
+  const settingsRes = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: a1(SETTINGS_SHEET_NAME, "A:B")
+  });
+  const rows = (settingsRes.data.values || []) as string[][];
+
+  const getRowNumber = (key: string) => {
+    const index = rows.findIndex((row) => rowValue(row, 0) === key);
+    return index >= 0 ? index + 1 : rows.length + 1;
+  };
+
+  const updates: Array<[string, string]> = [
+    [BRAND_MODE_KEY, input.brandMode],
+    [PRIMARY_COLOR_KEY, input.primaryColor],
+    [CLAIM_TITLE_KEY, input.claimTitle]
+  ];
+
+  for (const [key, value] of updates) {
+    const rowNumber = getRowNumber(key);
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: a1(SETTINGS_SHEET_NAME, `A${rowNumber}:B${rowNumber}`),
+      valueInputOption: "RAW",
+      requestBody: { values: [[key, value]] }
+    });
+  }
+
+  cachedSettings = null;
+  return input;
 }

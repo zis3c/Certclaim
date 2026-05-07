@@ -48,6 +48,7 @@ export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isChecking || isDownloading) return;
     setStatusMessage("");
     setResult(null);
     setDownloadSuccess(false);
@@ -80,7 +81,7 @@ export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
   }
 
   async function handleDownload() {
-    if (!result?.found || !result.eligible) return;
+    if (!result?.found || !result.eligible || isDownloading || isChecking) return;
 
     setIsDownloading(true);
     setStatusMessage("");
@@ -180,7 +181,7 @@ export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
 
                 <Button
                   type="submit"
-                  disabled={isChecking || !matricNo.trim()}
+                  disabled={isChecking || isDownloading || !matricNo.trim()}
                   className="h-11 w-full rounded-md"
                   style={{
                     backgroundColor: "color-mix(in srgb, var(--primary), var(--foreground) 14%)",
@@ -234,7 +235,7 @@ export default function ClaimForm({ isOpen, claimTitle }: ClaimFormProps) {
                 {verifiedResult.eligible ? (
                   <Button
                     onClick={handleDownload}
-                    disabled={isDownloading}
+                    disabled={isDownloading || isChecking || downloadSuccess}
                     className={cn("h-11 w-full rounded-md", downloadSuccess && "bg-emerald-600 text-white hover:bg-emerald-600")}
                     style={
                       downloadSuccess

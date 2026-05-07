@@ -1,6 +1,7 @@
 import BrandLogo from "@/components/BrandLogo";
 import ClaimForm from "@/components/ClaimForm";
-import { getClaimBrandConfig, getClaimBrandStyle, type Theme } from "@/lib/claimTheme";
+import ClaimPageSurface from "@/components/ClaimPageSurface";
+import { getClaimBrandConfig, type Theme } from "@/lib/claimTheme";
 import { getClaimSettings } from "@/lib/googleSheets";
 import { cookies } from "next/headers";
 import { ShieldCheck } from "lucide-react";
@@ -11,22 +12,28 @@ export default async function ClaimPage() {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("theme")?.value;
   const theme: Theme = savedTheme === "light" ? "light" : "dark";
-  const { brandMode, primaryColor, claimTitle } = getClaimBrandConfig();
-  const claimBrandStyle = getClaimBrandStyle(theme, brandMode, primaryColor);
+  const envBrandConfig = getClaimBrandConfig();
   let isOpen = false;
   let setupError = "";
+  let claimTitle = envBrandConfig.claimTitle;
+  let brandMode = envBrandConfig.brandMode;
+  let primaryColor = envBrandConfig.primaryColor;
 
   try {
     const settings = await getClaimSettings();
     isOpen = settings.claimStatus === "OPEN";
+    claimTitle = settings.claimTitle || envBrandConfig.claimTitle;
+    brandMode = settings.brandMode || envBrandConfig.brandMode;
+    primaryColor = settings.primaryColor || envBrandConfig.primaryColor;
   } catch (error) {
     setupError = error instanceof Error ? error.message : "Unable to load claim setting.";
   }
 
   return (
-    <main
-      className="relative flex h-screen w-full overflow-hidden bg-transparent text-foreground"
-      style={claimBrandStyle}
+    <ClaimPageSurface
+      initialTheme={theme}
+      brandMode={brandMode}
+      primaryColor={primaryColor}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,color-mix(in_srgb,var(--primary)_12%,transparent),transparent_34%)]" />
@@ -76,6 +83,6 @@ export default async function ClaimPage() {
           </div>
         </section>
       </div>
-    </main>
+    </ClaimPageSurface>
   );
 }

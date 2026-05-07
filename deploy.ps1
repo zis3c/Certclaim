@@ -36,7 +36,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "4/4 Extracting and restarting PM2 on the VPS..." -ForegroundColor Yellow
-ssh "${deployUser}@${deployHost}" "cd '$deployPath' && tar -xzf deploy.tar.gz && npm install --omit=dev && pm2 restart '$pm2AppName'"
+ssh "${deployUser}@${deployHost}" "cd '$deployPath' && tar -xzf deploy.tar.gz && npm ci --omit=dev --no-audit --no-fund && if pm2 describe '$pm2AppName' >/dev/null 2>&1; then PORT=3001 pm2 restart '$pm2AppName' --update-env; else PORT=3001 pm2 start npm --name '$pm2AppName' --max-memory-restart 320M -- start; fi && pm2 save"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Remote restart failed." -ForegroundColor Red

@@ -417,6 +417,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
             <col className="w-auto" />
             <col className="w-auto" />
             <col className="w-auto" />
+            <col className="w-auto" />
           </colgroup>
           <thead className="sticky top-0 z-10">
             <tr className="border-b border-border/30 bg-muted/60 backdrop-blur-sm text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -425,6 +426,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
               <th className="px-3 py-2.5 text-left font-semibold">Timestamp</th>
               <th className="px-3 py-2.5 text-left font-semibold">Name</th>
               <th className="px-3 py-2.5 text-center font-semibold">Matric</th>
+              <th className="px-3 py-2.5 text-left font-semibold">Phone</th>
               <th className="px-3 py-2.5 text-left font-semibold">Course</th>
               <th className="px-3 py-2.5 text-left font-semibold">Email</th>
               <th className="px-3 py-2.5 text-center font-semibold">Sijil</th>
@@ -438,7 +440,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
           <tbody>
             {filteredParticipants.length === 0 ? (
               <tr>
-                <td colSpan={13} className="px-4 py-16 text-center">
+                <td colSpan={14} className="px-4 py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
                       <Users className="h-5 w-5 text-muted-foreground" />
@@ -498,6 +500,11 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                     </code>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-xs text-muted-foreground">
+                    <span title={participant.phone_no}>
+                      {participant.phone_no || "-"}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-xs text-muted-foreground">
                     <span title={participant.student_course}>
                       {participant.student_course || "-"}
                     </span>
@@ -544,7 +551,12 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         type="button"
                         onClick={() => void updateAttendance(participant, "undo")}
                         disabled={attendanceActionRow === participant.rowNumber}
-                        className="inline-flex h-6 w-14 items-center justify-center rounded-md bg-red-500 text-[10px] font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border text-[10px] font-bold transition-colors disabled:opacity-50"
+                        style={{
+                          backgroundColor: "color-mix(in srgb, var(--destructive), var(--background) 15%)",
+                          borderColor: "color-mix(in srgb, var(--destructive), transparent 55%)",
+                          color: "color-mix(in srgb, var(--destructive), var(--foreground) 35%)"
+                        }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "UNDO"}
                       </button>
@@ -553,7 +565,12 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         type="button"
                         onClick={() => void updateAttendance(participant, "mark")}
                         disabled={attendanceActionRow === participant.rowNumber}
-                        className="inline-flex h-6 w-14 items-center justify-center rounded-md bg-emerald-500 text-[10px] font-bold text-white transition-colors hover:bg-emerald-600 disabled:opacity-50"
+                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border text-[10px] font-bold transition-colors disabled:opacity-50"
+                        style={{
+                          backgroundColor: "color-mix(in srgb, var(--success), var(--background) 15%)",
+                          borderColor: "color-mix(in srgb, var(--success), transparent 55%)",
+                          color: "color-mix(in srgb, var(--success), var(--foreground) 35%)"
+                        }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "MARK"}
                       </button>
