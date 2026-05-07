@@ -596,11 +596,12 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         type="button"
                         onClick={() => void updateAttendance(participant, "undo")}
                         disabled={attendanceActionRow === participant.rowNumber}
-                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border text-[10px] font-bold transition-colors disabled:opacity-50"
+                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border !text-white text-[10px] font-bold transition-colors disabled:opacity-50"
                         style={{
                           backgroundColor: "color-mix(in srgb, var(--destructive), var(--background) 15%)",
                           borderColor: "color-mix(in srgb, var(--destructive), transparent 55%)",
-                          color: "#ffffff"
+                          color: "#ffffff",
+                          WebkitTextFillColor: "#ffffff"
                         }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "UNDO"}
@@ -610,11 +611,12 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         type="button"
                         onClick={() => void updateAttendance(participant, "mark")}
                         disabled={attendanceActionRow === participant.rowNumber}
-                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border text-[10px] font-bold transition-colors disabled:opacity-50"
+                        className="inline-flex h-6 w-14 items-center justify-center rounded-md border !text-white text-[10px] font-bold transition-colors disabled:opacity-50"
                         style={{
                           backgroundColor: "color-mix(in srgb, var(--success), var(--background) 15%)",
                           borderColor: "color-mix(in srgb, var(--success), transparent 55%)",
-                          color: "#ffffff"
+                          color: "#ffffff",
+                          WebkitTextFillColor: "#ffffff"
                         }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "MARK"}
