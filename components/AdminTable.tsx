@@ -604,7 +604,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                           WebkitTextFillColor: "#ffffff"
                         }}
                       >
-                        {attendanceActionRow === participant.rowNumber ? "..." : "UNDO"}
+                        <span className="attendance-action-label">{attendanceActionRow === participant.rowNumber ? "..." : "UNDO"}</span>
                       </button>
                     ) : (
                       <button
@@ -619,7 +619,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                           WebkitTextFillColor: "#ffffff"
                         }}
                       >
-                        {attendanceActionRow === participant.rowNumber ? "..." : "MARK"}
+                        <span className="attendance-action-label">{attendanceActionRow === participant.rowNumber ? "..." : "MARK"}</span>
                       </button>
                     )}
                   </td>

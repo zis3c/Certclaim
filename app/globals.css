@@ -338,6 +338,11 @@ select:disabled {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  html[data-theme="dark"] .attendance-action-label {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
 }
 
 /* ── Keyframe Animations ── */
