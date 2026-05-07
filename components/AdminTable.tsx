@@ -67,6 +67,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
   const [participants, setParticipants] = useState(initialParticipants);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("ALL");
+  const [sourceFilter, setSourceFilter] = useState<"ALL" | "PARTICIPANT" | "COMMITTEE">("ALL");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState("");
@@ -210,8 +211,12 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
     const canClaim = participants.filter(canClaimCertificate).length;
     const attended = participants.filter((p) => hasAttended(p.attendance_status)).length;
     const claimed = participants.filter((p) => p.claim_status.toUpperCase() === "CLAIMED").length;
+    const participantCount = participants.filter((p) => p.source === "participant").length;
+    const committeeCount = participants.filter((p) => p.source === "committee").length;
     return {
       ALL: participants.length,
+      PARTICIPANT: participantCount,
+      COMMITTEE: committeeCount,
       ELIGIBLE: canClaim,
       SIJIL_APPROVED: eligible,
       ATTENDED: attended,
@@ -252,9 +257,14 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
         (filter === "CLAIMED" && participant.claim_status.toUpperCase() === "CLAIMED") ||
         (filter === "UNCLAIMED" && participant.claim_status.toUpperCase() !== "CLAIMED");
 
-      return matchesSearch && matchesFilter;
+      const matchesSource =
+        sourceFilter === "ALL" ||
+        (sourceFilter === "PARTICIPANT" && participant.source === "participant") ||
+        (sourceFilter === "COMMITTEE" && participant.source === "committee");
+
+      return matchesSearch && matchesFilter && matchesSource;
     });
-  }, [filter, participants, search]);
+  }, [filter, participants, search, sourceFilter]);
 
   return (
     <div className="flex h-full flex-col">
@@ -310,6 +320,41 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
               );
             })}
           </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-1">
+          {[
+            { value: "ALL", label: "All Sources", count: counts.ALL },
+            { value: "PARTICIPANT", label: "Participant", count: counts.PARTICIPANT },
+            { value: "COMMITTEE", label: "Committee", count: counts.COMMITTEE }
+          ].map((opt) => {
+            const isActive = sourceFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setSourceFilter(opt.value as "ALL" | "PARTICIPANT" | "COMMITTEE")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-all",
+                  !isActive && "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+                style={
+                  isActive
+                    ? {
+                        backgroundColor: "color-mix(in srgb, var(--warning), transparent 82%)",
+                        color: "color-mix(in srgb, var(--warning), var(--foreground) 30%)",
+                        boxShadow: "0 0 0 1px color-mix(in srgb, var(--warning), transparent 72%)"
+                      }
+                    : {}
+                }
+              >
+                <span className="hidden sm:inline">{opt.label}</span>
+                <span className={cn("tabular-nums text-[10px]", isActive ? "text-foreground/80" : "text-muted-foreground/60")}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Row 2: Search + dropdown */}
@@ -555,7 +600,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         style={{
                           backgroundColor: "color-mix(in srgb, var(--destructive), var(--background) 15%)",
                           borderColor: "color-mix(in srgb, var(--destructive), transparent 55%)",
-                          color: "color-mix(in srgb, var(--destructive), var(--foreground) 35%)"
+                          color: "#ffffff"
                         }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "UNDO"}
@@ -569,7 +614,7 @@ export default function AdminTable({ participants: initialParticipants }: AdminT
                         style={{
                           backgroundColor: "color-mix(in srgb, var(--success), var(--background) 15%)",
                           borderColor: "color-mix(in srgb, var(--success), transparent 55%)",
-                          color: "color-mix(in srgb, var(--success), var(--foreground) 35%)"
+                          color: "#ffffff"
                         }}
                       >
                         {attendanceActionRow === participant.rowNumber ? "..." : "MARK"}

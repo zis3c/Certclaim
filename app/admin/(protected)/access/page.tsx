@@ -19,8 +19,7 @@ export default async function AdminClaimAccessPage() {
         : "Unable to connect to Google Sheets.";
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
-  const claimUrl = appUrl ? `${appUrl}/claim` : "";
+  const claimUrl = "https://cert-management-five.vercel.app/claim";
 
   if (setupError) {
     return (

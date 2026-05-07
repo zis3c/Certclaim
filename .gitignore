@@ -38,6 +38,8 @@ deploy.tar.gz
 # local one-off scripts with embedded secrets
 add-envs.js
 test-hash.js
+appscriptCommittee.js
+appscriptParticipant.js
 
 # OS/editor
 .DS_Store
